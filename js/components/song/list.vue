@@ -103,6 +103,11 @@ export default {
       this.render()
     },
 
+    filteredItems() {
+      // Reset selection
+      this.unselectAllRows()
+    },
+
     selectedSongs (val) {
       event.emit(event.$names.SET_SELECTED_SONGS, val, this.$parent)
     }
@@ -265,6 +270,10 @@ export default {
       this.filteredItems.forEach(row => (row.selected = true))
     },
 
+    unselectAllRows() {
+      this.songRows.forEach(row => (row.selected = false))
+    },
+
     rowClicked (rowVm, event) {
       // If we're on a touch device, or if Ctrl/Cmd key is pressed, just toggle selection.
       if (isMobile.any) {
@@ -282,7 +291,7 @@ export default {
           this.toggleRow(rowVm)
         }
 
-        if (event.shiftKey && this.lastSelectedRow) {
+        if (event.shiftKey && this.lastSelectedRow !== null) {
           this.selectRowsBetween(this.lastSelectedRow, rowVm)
         }
       }
@@ -290,12 +299,12 @@ export default {
 
     toggleRow (rowVm) {
       rowVm.item.selected = !rowVm.item.selected
-      this.lastSelectedRow = rowVm
+      this.lastSelectedRow = this.filteredItems.indexOf(rowVm)
     },
 
-    selectRowsBetween (firstRowVm, secondRowVm) {
+    selectRowsBetween (firstRowVmIndex, secondRowVm) {
       const indexes = [
-        this.filteredItems.indexOf(firstRowVm.item),
+        firstRowVmIndex,
         this.filteredItems.indexOf(secondRowVm.item)
       ]
       indexes.sort((a, b) => a - b)
