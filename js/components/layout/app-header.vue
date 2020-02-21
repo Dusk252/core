@@ -10,15 +10,6 @@
     <search-form/>
     <div class="header-right">
       <user-badge/>
-      <a
-        @click.prevent="showAboutDialog"
-        class="about control"
-        href
-        title="About Koel"
-        role="button"
-      >
-        <i class="fa fa-info-circle"/>
-      </a>
     </div>
   </header>
 
@@ -41,8 +32,8 @@ export default {
   methods: {
     toggleSidebar: () => event.emit(event.$names.TOGGLE_SIDEBAR),
     toggleSearchForm: () => event.emit(event.$names.TOGGLE_SEARCH_FORM),
-    triggerMaximize: () => app.triggerMaximize(),
-    showAboutDialog: () => event.emit(event.$names.MODAL_SHOW_ABOUT_DIALOG)
+    triggerMaximize: () => app.triggerMaximize()
+    //showAboutDialog: () => event.emit(event.$names.MODAL_SHOW_ABOUT_DIALOG)
   }
 }
 </script>

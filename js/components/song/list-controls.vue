@@ -3,46 +3,46 @@
     <btn-group uppercased>
       <template v-if="fullConfig.play">
         <template v-if="altPressed">
-          <btn
-            @click.prevent="playAll"
-            class="btn-play-all"
-            orange
-            title="Play all all"
-            v-if="selectedSongs.length < 2 && songs.length"
-          >
-            <i class="fa fa-play"></i> All
-          </btn>
+<btn
+          @click.prevent="playAll"
+          class="btn-play-all"
+          highlight
+          title="Play all all"
+          v-if="selectedSongs.length < 2 && songs.length"
+        >
+          <i class="fa fa-play"></i> All
+        </btn>
 
-          <btn
-            @click.prevent="playSelected"
-            class="btn-play-selected"
-            orange
-            title="Play selected"
-            v-if="selectedSongs.length > 1"
-          >
-            <i class="fa fa-play"></i> Selected
-          </btn>
-        </template>
-        <template v-else>
-          <btn
-            @click.prevent="shuffle"
-            class="btn-shuffle-all"
-            orange
-            title="Shuffle all"
-            v-if="selectedSongs.length < 2 && songs.length"
-          >
-            <i class="fa fa-random"></i> All
-          </btn>
+        <btn
+          @click.prevent="playSelected"
+          class="btn-play-selected"
+          highlight
+          title="Play selected"
+          v-if="selectedSongs.length > 1"
+        >
+          <i class="fa fa-play"></i> Selected
+        </btn>
+      </template>
+      <template v-else>
+        <btn
+          @click.prevent="shuffle"
+          class="btn-shuffle-all"
+          highlight
+          title="Shuffle all"
+          v-if="selectedSongs.length < 2 && songs.length"
+        >
+          <i class="fa fa-random"></i> All
+        </btn>
 
-          <btn
-            @click.prevent="shuffleSelected"
-            class="btn-shuffle-selected"
-            orange
-            title="Shuffle selected"
-            v-if="selectedSongs.length > 1"
-          >
-            <i class="fa fa-random"></i> Selected
-          </btn>
+        <btn
+          @click.prevent="shuffleSelected"
+          class="btn-shuffle-selected"
+          highlight
+          title="Shuffle selected"
+          v-if="selectedSongs.length > 1"
+        >
+          <i class="fa fa-random"></i> Selected
+        </btn>
         </template>
       </template>
 

@@ -6,7 +6,7 @@
       <app-header/>
       <main-wrapper/>
       <app-footer/>
-      <support-koel/>
+      <!--<support-koel/>-->
       <overlay ref="overlay"/>
     </div>
 
@@ -43,7 +43,7 @@ export default {
     Overlay,
     LoginForm,
     EventListeners,
-    SupportKoel: () => import('@/components/meta/support-koel')
+    //SupportKoel: () => import('@/components/meta/support-koel')
   },
 
   data () {

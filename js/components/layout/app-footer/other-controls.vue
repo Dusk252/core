@@ -55,7 +55,7 @@
 
       <volume/>
 
-      <span
+      <!-- <span
         @click.prevent="downloadCurrentSong"
         class="download control"
         role="button"
@@ -64,7 +64,7 @@
         v-if="downloadable"
       >
         <i class="fa fa-download"></i>
-      </span>
+      </span> -->
     </div>
   </div>
 </template>

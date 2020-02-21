@@ -95,7 +95,7 @@ export default {
   }
 
   &.warning {
-    color: $colorOrange;
+    color: $colorHighlight;
   }
 }
 </style>

@@ -111,7 +111,7 @@ export default {
     color: $colorMainText;
 
     &:hover {
-      color: $colorOrange;
+      color: $colorHighlight;
     }
   }
 }

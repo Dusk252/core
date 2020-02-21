@@ -87,7 +87,7 @@
         </div>
       </div>
 
-      <section class="lastfm" >
+      <!-- <section class="lastfm" >
         <h1>Last.fm Integration</h1>
 
         <div v-if="sharedState.useLastfm">
@@ -132,7 +132,7 @@
             <span v-else>Try politely asking your administrator to enable it.</span>
           </p>
         </div>
-      </section>
+      </section> -->
     </div>
   </section>
 </template>

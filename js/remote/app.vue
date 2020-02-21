@@ -269,7 +269,7 @@
       }
 
       .signal {
-        border: 1px solid $colorOrange;
+        border: 1px solid $colorHighlight;
         border-radius: 50%;
         height: 0;
         opacity: 0;
@@ -281,7 +281,7 @@
 
       .rescan {
         margin-left: 5px;
-        color: $colorOrange;
+        color: $colorHighlight;
       }
 
       @keyframes pulsate {

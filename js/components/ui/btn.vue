@@ -63,6 +63,14 @@ button {
     }
   }
 
+  &[highlight] {
+    background-color: $colorHighlight;
+
+    &:hover {
+      background-color: darken($colorHighlight, 10%);
+    }
+  }
+
   &[orange] {
     background-color: $colorOrange;
 

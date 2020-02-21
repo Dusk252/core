@@ -2,7 +2,7 @@
   <span class="btn-group" v-bind="$attrs">
     <slot>
       <btn green>Foo</btn>
-      <btn orange>Bar</btn>
+      <btn highlight>Bar</btn>
       <btn red>Baz</btn>
     </slot>
   </span>
@@ -24,6 +24,13 @@ export default {
 
   button {
     display: inline-block;
+    font-size: .92rem;
+    height: 28px;
+    padding: 0 1.1rem;
+    line-height: 28px;
+    text-transform: uppercase;
+    margin-right: 1px;
+    //border-radius: 14px 0 0 14px;
 
     &:not(:first-child) {
       border-radius: 0;
@@ -39,6 +46,7 @@ export default {
     &:last-of-type {
       border-top-right-radius: 9999px;
       border-bottom-right-radius: 9999px;
+      margin-right: 0;
     }
   }
 

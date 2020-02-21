@@ -126,7 +126,7 @@ export default {
     white-space: nowrap;
 
     &:hover {
-      background: $colorOrange;
+      background: $colorHighlight;
       color: #fff;
     }
 

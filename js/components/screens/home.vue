@@ -20,7 +20,7 @@
 
         <section class="recent">
           <h1>Recently Played
-            <btn @click.prevent="goToRecentlyPlayedScreen" rounded small orange>View All</btn>
+            <btn @click.prevent="goToRecentlyPlayedScreen" rounded small highlight>View All</btn>
           </h1>
 
           <ol class="recent-song-list" v-show="recentSongs.length">
@@ -98,15 +98,14 @@ export default {
 
   data: () => ({
     greetings: [
-      'Oh hai!',
+      'おはよう、%s',
       'Hey, %s!',
-      'Howdy, %s!',
+      'たのもう！',
       'Yo!',
       'How’s it going, %s?',
-      'Sup, %s?',
       'How’s life, %s?',
-      'How’s your day, %s?',
-      'How have you been, %s?'
+      'How have you been, %s?',
+      'えいえいおー！'
     ],
     recentSongs: [],
     top: {
@@ -187,6 +186,12 @@ export default {
     a {
       color: $colorHighlight;
     }
+  }
+
+  .song-item-home .fa {
+    position: relative;
+    top: 1px;
+    left: 1px;
   }
 
   .recently-added {

@@ -70,32 +70,15 @@ export default {
 @import "~#/partials/_mixins.scss";
 
 #volume {
-  position: relative;
-  z-index: 99;
+  @include vertical-center();
 
   // More tweaks
-  [type=range] {
-    margin: -1px 0 0 5px;
-    transform: rotate(270deg);
-    transform-origin: 0;
-    position: absolute;
-    bottom: -25px;
-    border: 14px solid #333;
-    border-left-width: 30px;
-    z-index: 0;
-    width: 140px;
-    border-radius: 4px;
-    display: none;
-  }
-
-  &:hover [type=range] {
-    display: block;
+  input[type=range] {
+    margin-left: 3px;
   }
 
   i {
     width: 16px;
-    position: relative;
-    z-index: 1;
   }
 
   @media only screen and (max-width: 768px) {
