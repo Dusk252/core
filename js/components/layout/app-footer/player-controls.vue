@@ -187,6 +187,8 @@ export default {
       flex: 0 0 48px;
       height: 48px;
       box-shadow: 0 0 0 1px $colorLink;
+      margin-left: 12px;
+      margin-right: 12px;
     }
 
     .album-thumb {

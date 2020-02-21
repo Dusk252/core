@@ -1,13 +1,15 @@
 <template>
   <header id="mainHeader" @dblclick="triggerMaximize" data-cy="appHeader">
     <h1 class="brand" v-once>{{ appName }}</h1>
-    <span class="hamburger" @click="toggleSidebar" role="button" title="Show or hide the sidebar">
-      <i class="fa fa-bars"></i>
-    </span>
-    <span class="magnifier" @click="toggleSearchForm" role="button" title="Show or hide the search form">
-      <i class="fa fa-search"></i>
-    </span>
-    <search-form/>
+    <div class="header-left">
+      <span class="hamburger" @click="toggleSidebar" role="button" title="Show or hide the sidebar">
+        <i class="fa fa-bars"></i>
+      </span>
+      <span class="magnifier" @click="toggleSearchForm" role="button" title="Show or hide the search form">
+        <i class="fa fa-search"></i>
+      </span>
+      <search-form/>
+    </div>
     <div class="header-right">
       <user-badge/>
     </div>
@@ -63,19 +65,24 @@ export default {
     text-align: center;
   }
 
-  .hamburger, .magnifier {
-    font-size: 1.4rem;
-    flex: 0 0 48px;
+  .header-left {
+    display: flex;
+    flex-basis: 33%;
     order: -1;
-    line-height: $headerHeight;
-    text-align: center;
-    display: none;
+
+    .hamburger, .magnifier {
+      font-size: 1.4rem;
+      flex: 0 0 48px;
+      line-height: $headerHeight;
+      text-align: center;
+      display: none;
+    }
   }
 
   .header-right {
     display: flex;
     align-items: center;
-    flex: 1;
+    flex-basis: 33%;
     justify-content: flex-end;
 
     .about {
@@ -91,8 +98,10 @@ export default {
     align-content: stretch;
     justify-content: flext-start;
 
-    .hamburger, .magnifier {
-      display: inline-block;
+    .header-left {
+        .hamburger, .magnifier {
+          display: inline-block;
+        }
     }
 
     h1.brand {

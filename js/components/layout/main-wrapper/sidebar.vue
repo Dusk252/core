@@ -21,14 +21,10 @@
           <a :class="['albums', currentView === $options.views.ALBUMS ? 'active' : '']" href="#!/albums">Albums</a>
         </li>
         <li>
-          <a :class="['artists', currentView === $options.views.ARTISTS ? 'active' : '']" href="#!/artists">
-            Artists
-          </a>
+          <a :class="['artists', currentView === $options.views.ARTISTS ? 'active' : '']" href="#!/artists">Artists</a>
         </li>
         <li v-if="sharedState.useYouTube">
-          <a :class="['youtube', currentView === $options.views.YOUTUBE ? 'active' : '']" href="#!/youtube">
-            YouTube Video
-          </a>
+          <a :class="['youtube', currentView === $options.views.YOUTUBE ? 'active' : '']" href="#!/youtube">YouTube Video</a>
         </li>
       </ul>
     </section>
@@ -125,7 +121,7 @@ export default {
 
   html.touchevents & {
     // Enable scroll with momentum on touch devices
-    overflow-y: scroll;
+    //overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -218,7 +214,7 @@ export default {
 
   @media only screen and (max-width : 667px) {
     position: fixed;
-    height: calc(100vh - #{$headerHeight + $footerHeight});
+    height: calc(100vh - #{$headerHeight + $footerHeightMobile});
     width: 100%;
     z-index: 99;
     top: $headerHeight;

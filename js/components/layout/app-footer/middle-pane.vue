@@ -41,7 +41,7 @@ $colorPaneBgr: darken($color2ndBgr, 3);
     position: absolute;
     top: 0;
     left: 0;
-    height: 8px;
+    height: $plyr-volume-track-height;
   }
 }
 
@@ -72,9 +72,21 @@ $colorPaneBgr: darken($color2ndBgr, 3);
   }
 
   .plyr__progress {
+    overflow: hidden;
+    height: 1px;
+
+    html.touch &, .middle-pane:hover & {
+      overflow: visible;
+      height: $plyr-volume-track-height;
+    }
+
+    @media only screen and (max-width: 768px) {
+      overflow: visible;
+      height: $plyr-volume-track-height;
+    }
+
     &--seek {
       height: 11px;
-      border-bottom: 10px solid $colorPaneBgr; // increase click area
     }
   }
 
