@@ -14,6 +14,7 @@
 
 <script>
 import { filterBy, limitBy, event } from '@/utils'
+import { orderBy } from 'lodash'
 import { artistStore } from '@/stores'
 
 import infiniteScroll from '@/mixins/infinite-scroll'
@@ -33,6 +34,10 @@ export default {
     artists: []
   }),
 
+  props: {
+    showing: Boolean
+  },
+
   computed: {
     displayedItems () {
       return limitBy(this.filteredItems, this.numOfItems)
@@ -40,6 +45,13 @@ export default {
 
     filteredItems () {
       return filterBy(this.artists, this.q, 'name')
+    }
+  },
+
+  watch: {
+    showing() {
+      if (this.showing == true)
+        this.makeScrollable(this.$refs.scroller, this.artists.length)
     }
   },
 
@@ -52,20 +64,20 @@ export default {
   created () {
     event.on({
       [event.$names.KOEL_READY]: () => {
-        this.artists = artistStore.all
+        this.artists = orderBy(artistStore.all, 'name')
 
         // #1086 solving not scrollable issue on very big screens
-        if (this.$refs.scroller) {
-          this.$nextTick(() => this.makeScrollable(this.$refs.scroller, this.artists.length))
-        }
+        //if (this.$refs.scroller) {
+          //this.$nextTick(() => this.makeScrollable(this.$refs.scroller, this.artists.length))
+        //}
       },
       [event.$names.FILTER_CHANGED]: q => (this.q = q)
     })
-  },
-
-  mounted () {
-    this.makeScrollable(this.$refs.scroller, this.artists.length)
   }
+
+  //mounted () {
+    //this.makeScrollable(this.$refs.scroller, this.artists.length)
+  //}
 }
 </script>
 

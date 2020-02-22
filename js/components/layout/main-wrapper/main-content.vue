@@ -11,8 +11,8 @@
     <home-screen v-show="view === $options.views.HOME"/>
     <queue-screen v-show="view === $options.views.QUEUE"/>
     <all-songs-screen v-show="view === $options.views.SONGS"/>
-    <album-list-screen v-show="view === $options.views.ALBUMS"/>
-    <artist-list-screen v-show="view === $options.views.ARTISTS"/>
+    <album-list-screen v-show="view === $options.views.ALBUMS" :showing="view === $options.views.ALBUMS"/>
+    <artist-list-screen v-show="view === $options.views.ARTISTS" :showing="view === $options.views.ARTISTS"/>
     <playlist-screen v-show="view === $options.views.PLAYLIST"/>
     <favorites-screen v-show="view === $options.views.FAVORITES"/>
     <recently-played-screen v-show="view === $options.views.RECENTLY_PLAYED"/>
@@ -110,7 +110,7 @@ export default {
 
       html.touchevents & {
         // Enable scroll with momentum on touch devices
-        overflow-y: scroll;
+        //overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
       }
     }

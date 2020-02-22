@@ -14,6 +14,7 @@
 
 <script>
 import { filterBy, limitBy, event } from '@/utils'
+import { orderBy } from 'lodash'
 import { albumStore } from '@/stores'
 import infiniteScroll from '@/mixins/infinite-scroll'
 
@@ -33,6 +34,10 @@ export default {
     albums: []
   }),
 
+  props: {
+    showing: Boolean
+  },
+
   computed: {
     displayedItems () {
       return limitBy(this.filteredItems, this.numOfItems)
@@ -40,6 +45,13 @@ export default {
 
     filteredItems () {
       return filterBy(this.albums, this.q, 'name', 'artist.name')
+    }
+  },
+
+  watch: {
+    showing() {
+      if (this.showing == true)
+        this.makeScrollable(this.$refs.scroller, this.albums.length)
     }
   },
 
@@ -52,19 +64,19 @@ export default {
   created () {
     event.on({
       [event.$names.KOEL_READY]: () => {
-        this.albums = albumStore.all
+        this.albums = orderBy(albumStore.all, 'name')
 
-        if (this.$refs.scroller) {
-          this.$nextTick(() => this.makeScrollable(this.$refs.scroller, this.albums.length))
-        }
+        //if (this.$refs.scroller) {
+          //this.$nextTick(() => this.makeScrollable(this.$refs.scroller, this.albums.length))
+        //}
       },
       [event.$names.FILTER_CHANGED]: q => (this.q = q)
     })
   },
 
-  mounted () {
-    this.makeScrollable(this.$refs.scroller, this.albums.length)
-  }
+  //mounted () {
+    //this.makeScrollable(this.$refs.scroller, this.albums.length)
+  //}
 }
 </script>
 
