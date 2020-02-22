@@ -1,4 +1,4 @@
-import { shuffle, orderBy, throttle } from 'lodash'
+import { shuffle, orderBy } from 'lodash'
 import plyr from 'plyr'
 import Vue from 'vue'
 import isMobile from 'ismobilejs'
@@ -21,6 +21,8 @@ import router from '@/router'
  */
 const PRELOAD_BUFFER = 30
 const DEFAULT_VOLUME_VALUE = 7
+let playtimestamp
+let updated
 
 let mainWin
 if (KOEL_ENV === 'app') {
@@ -43,9 +45,55 @@ export const playback = {
       controls: []
     })[0]
 
+    this.audio = document.querySelector('audio')
     this.volumeInput = document.getElementById('volumeRange')
 
-    this.listenToMediaEvents(this.player.media)
+    const player = document.querySelector('.plyr')
+
+    player.addEventListener('error', () => this.playNext(), true)
+
+    player.addEventListener('ended', e => {
+      if (sharedStore.state.useLastfm && userStore.current.preferences.lastfm_session_key) {
+        songStore.scrobble(queueStore.current)
+      }
+
+      if(preferences.repeatMode === 'REPEAT_ONE')
+        this.resetCounters()
+        
+      preferences.repeatMode === 'REPEAT_ONE' ? this.restart() : this.playNext()
+    })
+
+    player.addEventListener('canplay', () => {
+    })
+
+    player.addEventListener('timeupdate', e => {
+      const song = queueStore.current
+      if (
+        this.player.media.duration &&
+        this.player.media.currentTime + PRELOAD_BUFFER > this.player.media.duration
+      ) {
+        // Try preloading the next song
+        const nextSong = queueStore.next
+
+        if (!nextSong || nextSong.preloaded || (isMobile.any && preferences.transcodeOnMobile)) {
+          return
+        }
+
+        const audio = document.createElement('audio')
+        audio.setAttribute('src', songStore.getSourceUrl(nextSong))
+        audio.setAttribute('preload', 'auto')
+        audio.load()
+        nextSong.preloaded = true
+      }
+      if (playtimestamp === 0)
+        playtimestamp = e.timeStamp
+      else {
+        if (updated === false && (e.timeStamp - playtimestamp) / 1000 > this.player.media.duration / 1.5) {
+          this.registerPlayInteraction(song)
+          updated = true
+        }
+      }
+    })
 
     // On init, set the volume to the value found in the local storage.
     this.setVolume(preferences.volume)
@@ -54,18 +102,12 @@ export const playback = {
     event.emit(event.$names.INIT_EQUALIZER)
 
     if (isMediaSessionSupported) {
-      this.setMediaSessionActionHandlers()
+      navigator.mediaSession.setActionHandler('play', () => this.resume())
+      navigator.mediaSession.setActionHandler('pause', () => this.pause())
+      navigator.mediaSession.setActionHandler('previoustrack', () => this.playPrev())
+      navigator.mediaSession.setActionHandler('nexttrack', () => this.playNext())
     }
 
-    // As of current, only the web-based version of Koel supports the remote controller
-    if (KOEL_ENV !== 'app') {
-      this.listenToSocketEvents()
-    }
-
-    this.initialized = true
-  },
-
-  listenToSocketEvents () {
     socket.listen(event.$names.SOCKET_TOGGLE_PLAYBACK, () => this.toggle())
       .listen(event.$names.SOCKET_PLAY_NEXT, () => this.playNext())
       .listen(event.$names.SOCKET_PLAY_PREV, () => this.playPrev())
@@ -83,66 +125,8 @@ export const playback = {
         )
       })
       .listen(event.$names.SOCKET_SET_VOLUME, ({ volume }) => this.setVolume(volume))
-  },
 
-  setMediaSessionActionHandlers () {
-    navigator.mediaSession.setActionHandler('play', () => this.resume())
-    navigator.mediaSession.setActionHandler('pause', () => this.pause())
-    navigator.mediaSession.setActionHandler('previoustrack', () => this.playPrev())
-    navigator.mediaSession.setActionHandler('nexttrack', () => this.playNext())
-  },
-
-  listenToMediaEvents (mediaElement) {
-    mediaElement.addEventListener('error', () => this.playNext(), true)
-
-    mediaElement.addEventListener('ended', () => {
-      if (sharedStore.state.useLastfm && userStore.current.preferences.lastfm_session_key) {
-        songStore.scrobble(queueStore.current)
-      }
-
-      preferences.repeatMode === 'REPEAT_ONE' ? this.restart() : this.playNext()
-    })
-
-    mediaElement.addEventListener('timeupdate', throttle(() => {
-      const currentSong = queueStore.current
-
-      if (!currentSong.playCountRegistered && !this.isTranscoding) {
-        // if we've passed 25% of the song, it's safe to say the song has been "played".
-        // Refer to https://github.com/phanan/koel/issues/1087.
-        if (!mediaElement.duration || mediaElement.currentTime * 4 >= mediaElement.duration) {
-          this.registerPlay(currentSong)
-        }
-      }
-
-      const nextSong = queueStore.next
-
-      if (!nextSong || nextSong.preloaded || this.isTranscoding) {
-        return
-      }
-
-      if (mediaElement.duration && mediaElement.currentTime + PRELOAD_BUFFER > mediaElement.duration) {
-        this.preload(nextSong)
-      }
-    }, 3000))
-  },
-
-  get isTranscoding () {
-    return isMobile.any && preferences.transcodeOnMobile
-  },
-
-  registerPlay: song => {
-    recentlyPlayedStore.add(song)
-    songStore.registerPlay(song)
-    recentlyPlayedStore.fetchAll()
-    song.playCountRegistered = true
-  },
-
-  preload: song => {
-    const audioElement = document.createElement('audio')
-    audioElement.setAttribute('src', songStore.getSourceUrl(song))
-    audioElement.setAttribute('preload', 'auto')
-    audioElement.load()
-    song.preloaded = true
+    this.initialized = true
   },
 
   /**
@@ -177,9 +161,11 @@ export const playback = {
     // We'll just "restart" playing the song, which will handle notification, scrobbling etc.
     // Fixes #898
     audioService.context.resume().then(() => this.restart())
+
+    this.resetCounters()
   },
 
-  showNotification: song => {
+  showNotification (song) {
     if (!window.Notification || !preferences.notify) {
       return
     }
@@ -199,7 +185,8 @@ export const playback = {
     }
 
     if (isMediaSessionSupported) {
-      navigator.mediaSession.metadata = new window.MediaMetadata({
+      /* global MediaMetadata */
+      navigator.mediaSession.metadata = new MediaMetadata({
         title: song.title,
         artist: song.artist.name,
         album: song.album.name,
@@ -218,7 +205,7 @@ export const playback = {
     // Record the UNIX timestamp the song start playing, for scrobbling purpose
     song.playStartTime = Math.floor(Date.now() / 1000)
 
-    song.playCountRegistered = false
+    song.registeredPlayCount = false
 
     event.emit(event.$names.SONG_PLAYED, song)
 
@@ -324,7 +311,7 @@ export const playback = {
 
   unmute () {
     // If the saved volume is 0, we unmute to the default level (7).
-    if (parseInt(preferences.volume) === 0) {
+    if (preferences.volume === '0' || preferences.volume === 0) {
       preferences.volume = DEFAULT_VOLUME_VALUE
     }
 
@@ -410,12 +397,29 @@ export const playback = {
   playAllByArtist ({ songs }, shuffled = true) {
     shuffled
       ? this.queueAndPlay(songs, true /* shuffled */)
-      : this.queueAndPlay(orderBy(songs, ['album_id', 'disc', 'track']))
+      : this.queueAndPlay(orderBy(songs, ['album.year', 'album.name', 'disc', 'track']))
   },
 
   playAllInAlbum ({ songs }, shuffled = true) {
     shuffled
       ? this.queueAndPlay(songs, true /* shuffled */)
       : this.queueAndPlay(orderBy(songs, ['disc', 'track']))
+  },
+
+  playAllInPlaylist ({ songs }, shuffled = true) {
+    shuffled
+      ? this.queueAndPlay(songs, true /* shuffled */)
+      : this.queueAndPlay(orderBy(songs, ['sort_order']))
+  },
+
+  registerPlayInteraction(song) {
+    recentlyPlayedStore.add(song)
+    songStore.registerPlay(song)
+    recentlyPlayedStore.fetchAll()
+  },
+
+  resetCounters() {
+    playtimestamp = 0
+    updated = false
   }
 }
