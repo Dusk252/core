@@ -6,33 +6,39 @@
     @keydown.enter.prevent.stop="handleEnter"
     @keydown.a.prevent="handleA"
   >
-    <table class="song-list-header" :class="sortable ? 'sortable' : 'unsortable'">
-      <thead>
-        <tr>
-          <th @click="sort('song.track')" class="track-number">#
-            <i class="fa fa-angle-down" v-show="sortKey === 'song.track' && order > 0"></i>
-            <i class="fa fa-angle-up" v-show="sortKey === 'song.track' && order < 0"></i>
-          </th>
-          <th @click="sort('song.title')" class="title">Title
-            <i class="fa fa-angle-down" v-show="sortKey === 'song.title' && order > 0"></i>
-            <i class="fa fa-angle-up" v-show="sortKey === 'song.title' && order < 0"></i>
-          </th>
-          <th @click="sort(['song.album.artist.name', 'song.album.name', 'song.track'])" class="artist">Artist
-            <i class="fa fa-angle-down" v-show="sortingByArtist && order > 0"></i>
-            <i class="fa fa-angle-up" v-show="sortingByArtist && order < 0"></i>
-          </th>
-          <th @click="sort(['song.album.name', 'song.track'])" class="album">Album
-            <i class="fa fa-angle-down" v-show="sortingByAlbum && order > 0"></i>
-            <i class="fa fa-angle-up" v-show="sortingByAlbum && order < 0"></i>
-          </th>
-          <th @click="sort('song.length')" class="time">Time
-            <i class="fa fa-angle-down" v-show="sortKey === 'song.length' && order > 0"></i>
-            <i class="fa fa-angle-up" v-show="sortKey === 'song.length' && order < 0"></i>
-          </th>
-          <th class="play"></th>
-        </tr>
-      </thead>
-    </table>
+    <div class="song-list-header-wrap">
+      <table class="song-list-header" :class="sortable ? 'sortable' : 'unsortable'">
+        <thead>
+          <tr>
+            <th @click="sort(['song.track', 'song.disc'])" class="track-number">#
+              <i class="fa fa-angle-down" v-show="sortKey === 'song.track' && order > 0"></i>
+              <i class="fa fa-angle-up" v-show="sortKey === 'song.track' && order < 0"></i>
+            </th>
+            <th @click="sort('song.title')" class="title">Title
+              <i class="fa fa-angle-down" v-show="sortKey === 'song.title' && order > 0"></i>
+              <i class="fa fa-angle-up" v-show="sortKey === 'song.title' && order < 0"></i>
+            </th>
+            <th @click="sort(['song.album.artist.name', 'song.album.name', 'song.disc', 'song.track'])" class="artist">Artist
+              <i class="fa fa-angle-down" v-show="sortingByArtist && order > 0"></i>
+              <i class="fa fa-angle-up" v-show="sortingByArtist && order < 0"></i>
+            </th>
+            <th @click="sort(['song.album.name', 'song.disc', 'song.track'])" class="album">Album
+              <i class="fa fa-angle-down" v-show="sortingByAlbum && order > 0"></i>
+              <i class="fa fa-angle-up" v-show="sortingByAlbum && order < 0"></i>
+            </th>
+            <th @click="sort('song.year')" class="year">Year
+              <i class="fa fa-angle-down" v-show="sortKey === 'song.year' && order > 0"></i>
+              <i class="fa fa-angle-up" v-show="sortKey === 'song.year' && order < 0"></i>
+            </th>
+            <th @click="sort('song.length')" class="time">Time
+              <i class="fa fa-angle-down" v-show="sortKey === 'song.length' && order > 0"></i>
+              <i class="fa fa-angle-up" v-show="sortKey === 'song.length' && order < 0"></i>
+            </th>
+            <th class="play"></th>
+          </tr>
+        </thead>
+      </table>
+    </div>
 
     <virtual-scroller
       class="scroller"
@@ -77,6 +83,10 @@ export default {
     },
     playlist: {
       type: Object
+    },
+    defaultSortKeys: {
+      type: Array,
+      default: ['song.title', 'song.artist.name']
     }
   },
 
@@ -101,9 +111,23 @@ export default {
   watch: {
     items () {
       this.render()
+      this.$nextTick(() => {
+        if (this.sortKey !== '') {
+            this.order *= -1
+            this.sort(this.sortKey)
+        }
+        else {
+          this.defaultSort()
+        }
+      })
     },
 
     filteredItems() {
+      // Update the song count and duration status on parent.
+      event.emit(event.$names.UPDATE_META, {
+        songCount: this.filteredItems.length,
+        totalLength: songStore.getFormattedLength(this.filteredItems, true)
+      }, this.$parent)
       // Reset selection
       this.unselectAllRows()
     },
@@ -299,7 +323,7 @@ export default {
 
     toggleRow (rowVm) {
       rowVm.item.selected = !rowVm.item.selected
-      this.lastSelectedRow = this.filteredItems.indexOf(rowVm)
+      this.lastSelectedRow = this.filteredItems.indexOf(rowVm.item)
     },
 
     selectRowsBetween (firstRowVmIndex, secondRowVm) {
@@ -383,7 +407,7 @@ export default {
      * @return { Object } A { keywords, fields } object
      */
     extractSearchDataFromQuery: q => {
-      const re = /in:(title|album|artist)/ig
+      const re = /in:(title|album|artist|year|lyrics|genre|composer|comments)/ig
       const fields = []
       const matches = q.match(re)
       let keywords = q
@@ -392,7 +416,7 @@ export default {
         if (keywords) {
           matches.forEach(match => {
             const field = match.split(':')[1].toLowerCase()
-            fields.push(field === 'title' ? `song.${field}` : `song.${field}.name`)
+            fields.push(field === 'artist' || field === 'album' ? `song.${field}.name` : `song.${field}`)
           })
         }
       }
@@ -400,12 +424,20 @@ export default {
         keywords,
         fields: fields.length ? fields : ['song.title', 'song.album.name', 'song.artist.name']
       }
+    },
+
+    defaultSort() {
+      if (this.defaultSortKeys.length)
+        this.songRows = orderBy(this.songRows, this.defaultSortKeys, 1)
     }
   },
 
   mounted () {
     if (this.items) {
       this.render()
+      this.$nextTick(() => {
+        this.defaultSort()
+      })
     }
   },
 
@@ -427,14 +459,17 @@ export default {
   position: relative;
   padding: 8px 24px;
 
-  .song-list-header {
+  .song-list-header-wrap {
+    background: #1b1b1b;
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    background: #1b1b1b;
     z-index: 1;
-    width: 100%;
+  }
+
+  .song-list-header {
+    width: calc(100% - 10px);
   }
 
   table {
@@ -459,6 +494,12 @@ export default {
       width: 96px;
       padding-right: 24px;
       text-align: right;
+    }
+
+    &.year {
+      width: 96px;
+      padding-left: 24px;
+      text-align: center;
     }
 
     &.track-number {
@@ -558,7 +599,7 @@ export default {
       vertical-align: bottom;
       color: $colorMainText;
 
-      &.album, &.time, &.track-number {
+      &.album, &.time, &.track-number, &.year {
         display: none;
       }
 

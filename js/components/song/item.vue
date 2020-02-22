@@ -2,6 +2,7 @@
   <tr
     class="song-item"
     draggable="true"
+	:data-song-id="song.id"
     @click="clicked"
     @dblclick.prevent="playRightAwayyyyyyy"
     @dragstart="dragStart"
@@ -16,6 +17,7 @@
     <td class="title">{{ song.title }}</td>
     <td class="artist">{{ song.artist.name }}</td>
     <td class="album">{{ song.album.name }}</td>
+    <td class="year">{{ song.year || '' }}</td>
     <td class="time">{{ song.fmtLength }}</td>
     <td class="play" @click.stop="doPlayback">
       <i class="fa fa-pause-circle" v-if="song.playbackState === 'playing'"></i>

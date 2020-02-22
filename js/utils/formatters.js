@@ -27,6 +27,24 @@ export const secondsToHis = d => {
 }
 
 /**
+ * Convert a sample rate into kHz format.
+ */
+export const sampleRateTokHz = d => {
+  d = d/1000;
+
+  return d.toFixed(1) + 'kHz';
+}
+
+/**
+ * Convert bitrate into k format.
+ */
+export const bitRateTok = d => {
+  d = d/1000;
+
+  return d.toFixed(0) + 'k';
+}
+
+/**
  * Parse the validation error from the server into a flattened array of messages.
  *
  * @param  {Object}  error  The error object in JSON format.

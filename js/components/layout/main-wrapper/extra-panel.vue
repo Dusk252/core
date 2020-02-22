@@ -12,6 +12,15 @@
           Lyrics
         </button>
         <button
+          :aria-selected="currentTab === $options.tabs.SONGINFO"
+          @click.prevent="currentTab = $options.tabs.SONGINFO"
+          aria-controls="extraPanelSongInfo"
+          id="extraTabSongInfo"
+          role="tab"
+        >
+          Info
+        </button>
+        <!-- <button
           :aria-selected="currentTab === $options.tabs.ARTIST"
           @click.prevent="currentTab = $options.tabs.ARTIST"
           aria-controls="extraPanelArtist"
@@ -28,7 +37,7 @@
           role="tab"
         >
           Album
-        </button>
+        </button> -->
         <button
           :aria-selected="currentTab === $options.tabs.YOUTUBE"
           @click.prevent="currentTab = $options.tabs.YOUTUBE"
@@ -39,6 +48,9 @@
           v-if="sharedState.useYouTube"
         >
           <i class="fa fa-youtube-play"></i>
+        </button>
+        <button class="edit-button" v-if="isAdmin && this.song" @click="openEditForm">
+          Edit
         </button>
       </div>
 
@@ -52,8 +64,17 @@
         >
           <lyrics-pane :song="song" />
         </div>
-
         <div
+          aria-labelledby="extraTabSongInfo"
+          id="extraPanelSongInfo"
+          role="tabpanel"
+          tabindex="0"
+          v-show="currentTab === $options.tabs.SONGINFO"
+        >
+          <song-info :song="song" />
+        </div>
+        
+        <!-- <div
           aria-labelledby="extraTabArtist"
           id="extraPanelArtist"
           role="tabpanel"
@@ -71,11 +92,11 @@
           v-show="currentTab === $options.tabs.ALBUM"
         >
           <album-info v-if="song.album.id" :album="song.album" mode="sidebar"/>
-        </div>
+        </div> -->
 
         <div
-          aria-labelledby="extraTabAlbum"
-          id="extraPanelAlbum"
+          aria-labelledby="extraTabYoutube"
+          id="extraPanelYoutube"
           role="tabpanel"
           tabindex="0"
           v-show="currentTab === $options.tabs.YOUTUBE"
@@ -91,11 +112,12 @@
 import isMobile from 'ismobilejs'
 
 import { event, $ } from '@/utils'
-import { sharedStore, songStore, preferenceStore as preferences } from '@/stores'
+import { sharedStore, songStore, userStore, preferenceStore as preferences } from '@/stores'
 import { songInfo } from '@/services'
 
 const EXTRA_PANEL_TABS = {
   LYRICS: 'LYRICS',
+  SONGINFO: 'SONGINFO',
   ARTIST: 'ARTIST',
   ALBUM: 'ALBUM',
   YOUTUBE: 'YOUTUBE'
@@ -105,6 +127,7 @@ EXTRA_PANEL_TABS.DEFAULT = EXTRA_PANEL_TABS.LYRICS
 
 export default {
   components: {
+    SongInfo: () => import('@/components/song/info'),
     LyricsPane: () => import('@/components/ui/lyrics-pane'),
     ArtistInfo: () => import('@/components/artist/info'),
     AlbumInfo: () => import('@/components/album/info'),
@@ -112,7 +135,7 @@ export default {
   },
 
   data: () => ({
-    song: songStore.stub,
+    song: null,
     state: preferences.state,
     sharedState: sharedStore.state,
     currentTab: EXTRA_PANEL_TABS.DEFAULT
@@ -133,6 +156,10 @@ export default {
         $.removeClass(document.documentElement, 'with-extra-panel')
       }
     }
+  },
+
+  computed: {
+    isAdmin: () => userStore.current.is_admin
   },
 
   mounted: () => {
@@ -160,6 +187,10 @@ export default {
       } catch (err) {
         this.song = song
       }
+    },
+
+    openEditForm () {
+      this.song && event.emit(event.$names.MODAL_SHOW_EDIT_SONG_FORM, this.song, 'song')
     }
   },
 
@@ -185,7 +216,7 @@ export default {
 
   html.touchevents & {
     // Enable scroll with momentum on touch devices
-    overflow-y: scroll;
+    //overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -193,25 +224,86 @@ export default {
     display: block;
   }
 
+ .name {
+    margin-bottom: 15px;
+  }
+
   h1 {
     font-weight: $fontWeight_UltraThin;
-    font-size: 2.2rem;
-    margin-bottom: 16px;
+    font-size: 2rem;
     line-height: 2.8rem;
+  }
+
+  .label {
+    display: inline;
+    //font-weight: bold;
+  }
+
+  .album-image {
+      padding-top: 100%;
+      margin-bottom: 15px;
+      background-size: cover;
+      background-position: center;
+      background-color: #282828;
+  }
+
+  .technical-info {
+    font-size: 0.9rem;
+  }
+
+  .primary-info.borderBottom {
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+  }
+
+  .primary-info.borderBottom {
+    border-bottom: solid 1px;
+  }
+
+  .primary-info > div {
+    margin-bottom: 5px;
+  }
+
+  .tabs > div:first-child {
+    display: flex;
+  }
+
+  .edit-button {
+    margin-left: auto;
+    align-self: center;
+    background: rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    padding: 0.2rem 0.8rem;
+    color: #dcdcdc;
+    display: flex;
+    align-items: center;
+  }
+
+  .edit-button:hover {
+    text-decoration: underline;
+    background-color: rgba(255, 255, 255, 0.4);
   }
 
   @media only screen and (max-width : 1024px) {
     position: fixed;
-    height: calc(100vh - #{$headerHeight});
+    height: calc(100vh - (#{$headerHeight} + #{$footerHeight}));
     width: $extraPanelWidth;
     z-index: 5;
     top: $headerHeight;
     right: -100%;
     transition: right .3s ease-in;
 
+    .panes {
+      padding-bottom: 0;
+    }
+
     &.showing {
       right: 0;
     }
+  }
+
+  @media only screen and (max-width : 768px) {
+    height: calc(100vh - (#{$headerHeight} + #{$footerHeightMobile}));
   }
 
   @media only screen and (max-width : 667px) {

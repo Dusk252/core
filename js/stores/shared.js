@@ -18,7 +18,7 @@ export const sharedStore = {
     albums: [],
     allowDownload: false,
     artists: [],
-    cdnUrl: '',
+    cdnUrl: '/',
     currentUser: null,
     currentVersion: '',
     favorites: [],

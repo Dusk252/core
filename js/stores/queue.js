@@ -7,28 +7,7 @@ export const queueStore = {
   },
 
   init () {
-    // We don't have anything to do here yet.
-    // How about another song then?
-    //
-    // LITTLE WING
-    // -- Jimi Hendrix
-    //
-    // Well she's walking
-    // Through the clouds
-    // With a circus mind
-    // That's running wild
-    // Butterflies and zebras and moonbeams and fairytales
-    // That's all she ever thinks about
-    // Riding with the wind
-    //
-    // When I'm sad
-    // She comes to me
-    // With a thousand smiles
-    // She gives to me free
-    // It's alright she said
-    // It's alright
-    // Take anything you want from me
-    // Anything...
+  	
   },
 
   get all () {
@@ -62,7 +41,6 @@ export const queueStore = {
    * @param {Object|Array.<Object>} songs The song, or an array of songs
    */
   queue (songs) {
-    this.unqueue(songs)
     this.all = union(this.all, [].concat(songs))
   },
 

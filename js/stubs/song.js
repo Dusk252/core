@@ -9,6 +9,8 @@ export default {
   title: '',
   length: 0,
   fmtLength: '00:00',
+  kbitrate: '',
+  khzsample_rate: '',
   lyrics: '',
   liked: false,
   playCount: 0,

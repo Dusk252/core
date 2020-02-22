@@ -6,6 +6,7 @@ export default {
   artist_id: 0,
   name: '',
   cover: '',
+  year: null,
   playCount: 0,
   length: 0,
   fmtLength: '00:00',

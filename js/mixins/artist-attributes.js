@@ -23,7 +23,6 @@ export default {
           }
         })
       }
-
       return this.artist.image
     }
   }

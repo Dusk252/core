@@ -3,7 +3,7 @@ import slugify from 'slugify'
 import { without, take, remove, orderBy, unionBy } from 'lodash'
 import isMobile from 'ismobilejs'
 
-import { secondsToHis, alerts, pluralize } from '@/utils'
+import { secondsToHis, sampleRateTokHz, bitRateTok, alerts, pluralize } from '@/utils'
 import { http, ls } from '@/services'
 import { sharedStore, favoriteStore, albumStore, artistStore, preferenceStore } from '.'
 import stub from '@/stubs/song'
@@ -24,6 +24,8 @@ export const songStore = {
 
   setupSong (song) {
     song.fmtLength = secondsToHis(song.length)
+    song.kbitrate = bitRateTok(song.bitrate)
+    song.khzsample_rate = sampleRateTokHz(song.sample_rate)
 
     const album = albumStore.byId(song.album_id)
     const artist = artistStore.byId(song.artist_id)
@@ -38,6 +40,7 @@ export const songStore = {
 
     artist.songs = unionBy(artist.songs || [], [song], 'id')
     album.songs = unionBy(album.songs || [], [song], 'id')
+    album.year = album.year === null ? song.year : album.year !== song.year && song.year !== null ? 0 : album.year
 
     // now if the song is part of a compilation album, the album must be added
     // into its artist as well
@@ -89,8 +92,17 @@ export const songStore = {
     return toHis ? secondsToHis(duration) : duration
   },
 
-  getFormattedLength (songs) {
-    return this.getLength(songs, true /* toHis */)
+  getFilteredLength (songItems, toHis = false) {
+    const duration = songItems.reduce((length, item) => length + item.song.length, 0)
+
+    return toHis ? secondsToHis(duration) : duration
+  },
+
+  getFormattedLength (songs, isFiltered = false) {
+    if (isFiltered)
+      return this.getFilteredLength(songs, true);
+    else
+      return this.getLength(songs, true /* toHis */)
   },
 
   get all () {
