@@ -30,8 +30,7 @@ export const playlistStore = {
 
     return new Promise((resolve, reject) => {
       http.get(`playlist/${playlist.id}/songs`, ({ data }) => {
-        playlist.songs = songStore.byIds(data)
-        playlist.populated = true
+        playlist.songs = data.map(d => Object.assign(songStore.byId(d.id), {sort_order: d.sort_order}))
         resolve(playlist)
       }, error => reject(error))
     })
@@ -50,6 +49,21 @@ export const playlistStore = {
   populateContent: playlist => (playlist.songs = songStore.byIds(playlist.songs)),
 
   getSongs: playlist => playlist.songs,
+
+    /**
+   * Move some songs to after a target.
+   *
+   * @param  {Array.<Object>} songs  Songs to move
+   * @param  {Object}     target The target song object
+   */
+  move (playlist, songs, target) {
+    const targetIndex = playlist.songs.indexOf(target)
+
+    songs.forEach(song => {
+      playlist.songs.splice(playlist.songs.indexOf(song), 1)
+      playlist.songs.splice(targetIndex, 0, song)
+    })
+  },
 
   /**
    * Add a playlist/playlists into the store.
@@ -99,14 +113,11 @@ export const playlistStore = {
     })
   },
 
-  async addSongs (playlist, songs) {
-    if (!playlist.populated) {
-      await this.fetchSongs(playlist)
-    }
-
+  addSongs (playlist, songs) {
     return new Promise((resolve, reject) => {
       const count = playlist.songs.length
       playlist.songs = union(playlist.songs, songs)
+      this.remapSortOrder(playlist);
 
       if (count === playlist.songs.length) {
         resolve(playlist)
@@ -117,18 +128,27 @@ export const playlistStore = {
 
       http.put(`playlist/${playlist.id}/sync`, { songs: playlist.songs.map(song => song.id) }, () => {
         alerts.success(`Added ${pluralize(songs.length, 'song')} into &quot;${playlist.name}&quot;.`)
-
-        // Playlist's songs are not reactive right away for some reason.
-        // This is a dirty hack to force reactivity.
-        playlist.name = `${playlist.name} `
-        playlist.name = playlist.name.trim()
-
         resolve(playlist)
       }, error => reject(error))
     })
   },
 
-  removeSongs: (playlist, songs) => {
+  updateSongs (playlist) {
+    if (playlist.is_smart) {
+      return
+    }
+    this.remapSortOrder(playlist);
+
+    NProgress.start()
+    return new Promise((resolve, reject) => {
+      http.put(`playlist/${playlist.id}/sync`, { songs: playlist.songs.map(song => song.id) }, () => {
+        alerts.success(`Updated song order in &quot;${playlist.name}&quot;.`)
+        resolve(playlist)
+      }, error => reject(error))
+    })
+  },
+
+  removeSongs (playlist, songs) {
     if (playlist.is_smart) {
       return
     }
@@ -136,6 +156,7 @@ export const playlistStore = {
     NProgress.start()
 
     playlist.songs = difference(playlist.songs, songs)
+    this.remapSortOrder(playlist);
 
     return new Promise((resolve, reject) => {
       http.put(`playlist/${playlist.id}/sync`, { songs: playlist.songs.map(song => song.id) }, () => {
@@ -159,5 +180,9 @@ export const playlistStore = {
         error => reject(error)
       )
     })
+  },
+
+  remapSortOrder: playlist => {
+    playlist.songs.map((val, index) => {val.sort_order = index; return val});
   }
 }

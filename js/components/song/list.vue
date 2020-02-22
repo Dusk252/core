@@ -63,6 +63,7 @@ import { playback } from '@/services'
 import router from '@/router'
 
 const songItem = () => import('@/components/song/item')
+const playlistItem = () => import('@/components/song/playlist-item')
 const VALID_SONG_LIST_TYPES = ['all-songs', 'queue', 'playlist', 'favorites', 'recently-played', 'artist', 'album']
 
 export default {
@@ -92,13 +93,11 @@ export default {
 
   components: {
     songItem,
+    playlistItem,
     ContextMenu: () => import('@/components/song/context-menu')
   },
 
   data: () => ({
-    renderers: Object.freeze({
-      song: songItem
-    }),
     lastSelectedRow: null,
     q: '',
     sortKey: '',
@@ -144,11 +143,17 @@ export default {
     },
 
     allowSongReordering () {
-      return this.type === 'queue'
+      return this.type === 'queue' || this.type === 'playlist'
     },
 
     selectedSongs () {
       return this.filteredItems.filter(row => row.selected).map(row => row.song)
+    },
+
+    renderers () {
+      return Object.freeze({
+        song: (this.type === 'playlist' ? playlistItem : songItem)
+      })
     }
   },
 
@@ -232,6 +237,7 @@ export default {
           break
         case 'playlist':
           playlistStore.removeSongs(this.playlist, this.selectedSongs)
+          this.defaultSort()
           break
         default:
           break
@@ -383,7 +389,15 @@ export default {
         return this.removeDroppableState(event)
       }
 
-      queueStore.move(this.selectedSongs, rowVm.song)
+      if (this.type == 'queue'){
+        queueStore.move(this.selectedSongs, rowVm.song)
+      }
+
+      if (this.type == 'playlist'){
+        playlistStore.move(this.playlist, this.selectedSongs, rowVm.song)
+        playlistStore.updateSongs(this.playlist)
+        this.defaultSort()
+      }
       return this.removeDroppableState(event)
     },
 

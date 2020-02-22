@@ -32,8 +32,10 @@
       <song-list v-show="playlist.songs.length"
         :items="playlist.songs"
         :playlist="playlist"
+        :defaultSortKeys="['song.sort_order']"
         type="playlist"
         ref="songList"
+		:sortable="false"
       />
 
       <div v-if="!playlist.songs.length" class="none">
@@ -47,7 +49,7 @@
 <script>
 import { pluralize, event } from '@/utils'
 import { playlistStore, sharedStore } from '@/stores'
-import { download } from '@/services'
+import { playback, download } from '@/services'
 import { views } from '@/config'
 import hasSongList from '@/mixins/has-song-list'
 
@@ -72,16 +74,21 @@ export default {
       if (view !== views.PLAYLIST) {
         return
       }
-
+      this.$forceUpdate()
       playlist.populated ? (this.playlist = playlist) : this.populate(playlist)
     })
   },
 
   methods: {
+
+    playAll (shuffled) {
+      playback.playAllInPlaylist(this.playlist, shuffled)
+    },
+
     getSongs () {
       return this.playlist.songs
     },
-
+    
     destroy () {
       event.emit(event.$names.PLAYLIST_DELETE, this.playlist)
     },
@@ -95,6 +102,7 @@ export default {
      */
     async populate (playlist) {
       await playlistStore.fetchSongs(playlist)
+      playlist.populated = true
       this.playlist = playlist
       this.$nextTick(() => this.$refs.songList && this.$refs.songList.sort())
     }
@@ -106,12 +114,6 @@ export default {
 @import "~#/partials/_vars.scss";
 
 #playlistWrapper {
-  button.play-shuffle, button.del {
-    i {
-      margin-right: 0 !important;
-    }
-  }
-
   .none {
     color: $color2ndText;
     padding: 16px 24px;
