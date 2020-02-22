@@ -2,8 +2,7 @@
   <div class="song-list-controls">
     <btn-group uppercased>
       <template v-if="fullConfig.play">
-        <template v-if="altPressed">
-<btn
+        <btn
           @click.prevent="playAll"
           class="btn-play-all"
           highlight
@@ -23,9 +22,9 @@
           <i class="fa fa-play"></i> Selected
         </btn>
       </template>
-      <template v-else>
+      <template v-if="fullConfig.shuffle">
         <btn
-          @click.prevent="shuffle"
+          @click.prevent="shuffleAll"
           class="btn-shuffle-all"
           highlight
           title="Shuffle all"
@@ -43,7 +42,6 @@
         >
           <i class="fa fa-random"></i> Selected
         </btn>
-        </template>
       </template>
 
       <btn
@@ -89,7 +87,6 @@
 </template>
 
 <script>
-const KEYCODE_ALT = 18
 
 export default {
   props: {
@@ -113,6 +110,7 @@ export default {
   data: () => ({
     fullConfig: {
       play: true,
+      shuffle: true,
       addTo: {
         queue: true,
         favorites: true,
@@ -123,8 +121,7 @@ export default {
       deletePlaylist: false
     },
     showingAddToMenu: false,
-    numberOfQueuedSongs: 0,
-    altPressed: false
+    numberOfQueuedSongs: 0
   }),
 
   computed: {
@@ -142,7 +139,7 @@ export default {
   },
 
   methods: {
-    shuffle () {
+    shuffleAll () {
       this.$emit('playAll', true)
     },
 
@@ -168,29 +165,7 @@ export default {
 
     closeAddToMenu () {
       this.showingAddToMenu = false
-    },
-
-    registerKeydown (event) {
-      if (event.keyCode === KEYCODE_ALT) {
-        this.altPressed = true
-      }
-    },
-
-    registerKeyup (event) {
-      if (event.keyCode === KEYCODE_ALT) {
-        this.altPressed = false
-      }
     }
-  },
-
-  mounted () {
-    window.addEventListener('keydown', this.registerKeydown)
-    window.addEventListener('keyup', this.registerKeyup)
-  },
-
-  unmounted () {
-    window.removeEventListener('keydown', this.registerKeydown)
-    window.removeEventListener('keyup', this.registerKeyup)
   }
 }
 </script>

@@ -26,8 +26,8 @@ export const artistStore = {
   setupArtist (artist) {
     Vue.set(artist, 'playCount', 0)
     Vue.set(artist, 'info', null)
-    Vue.set(artist, 'albums', [])
-    Vue.set(artist, 'songs', [])
+    Vue.set(artist, 'albums', artist.albums || [])
+    Vue.set(artist, 'songs', artist.songs || [])
 
     this.cache[artist.id] = artist
 
@@ -68,7 +68,7 @@ export const artistStore = {
    * Remove empty artists from the store.
    */
   compact () {
-    const emptyArtists = this.all.filter(artist => artist.songs.length === 0)
+    const emptyArtists = this.all.filter(artist => !this.isVariousArtists(artist) && artist.songs.length === 0)
     if (!emptyArtists.length) {
       return
     }
@@ -84,7 +84,7 @@ export const artistStore = {
   getSongsByArtist: artist => artist.songs,
 
   getMostPlayed (n = 6) {
-    // Only non-unknown artists with actual play count are applicable.
+    // Only non-unknown artists with actually play count are applicable.
     // Also, "Various Artists" doesn't count.
     const applicable = this.all.filter(artist => {
       return artist.playCount &&

@@ -75,7 +75,7 @@ export default {
 
   methods: {
     shuffleAll () {
-      playback.playAllByArtist(this.artist, false)
+      playback.playAllByArtist(this.artist, true)
     }
   }
 }
