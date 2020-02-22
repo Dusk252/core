@@ -6,8 +6,8 @@
           <span v-if="firstSongPlaying">Pause</span>
           <span v-else>Play</span>
         </li>
-        <li class="go-to-album" @click="viewAlbumDetails(songs[0].album)">Go to Album</li>
-        <li class="go-to-artist" @click="viewArtistDetails(songs[0].artist)">Go to Artist</li>
+        <li v-if="type==='song'" class="go-to-album" @click="viewAlbumDetails(songs[0].album)">Go to Album</li>
+        <li v-if="type==='song' || type==='album'" class="go-to-artist" @click="viewArtistDetails(songs[0].artist)">Go to Artist</li>
       </template>
       <li class="has-sub">Add To
         <ul class="menu submenu menu-add-to">
@@ -26,7 +26,7 @@
       </li>
       <li class="open-edit-form" v-if="isAdmin" @click="openEditForm">Edit</li>
       <li class="download" v-if="sharedState.allowDownload" @click="download">Download</li>
-      <li class="copy-url" v-if="copyable && onlyOneSongSelected" @click="copyUrl">Copy Shareable URL</li>
+      <li class="copy-url" v-if="copyable && onlyOneSongSelected && type==='song'" @click="copyUrl">Copy Shareable URL</li>
     </template>
   </base-context-menu>
 </template>
@@ -42,6 +42,10 @@ export default {
   props: {
     songs: {
       type: Array,
+      required: true
+    },
+    type: {
+      type: String,
       required: true
     }
   },
@@ -103,7 +107,7 @@ export default {
     },
 
     openEditForm () {
-      this.songs.length && event.emit(event.$names.MODAL_SHOW_EDIT_SONG_FORM, this.songs)
+      this.songs.length && event.emit(event.$names.MODAL_SHOW_EDIT_SONG_FORM, this.songs, this.type)
       this.close()
     },
 

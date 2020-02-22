@@ -4,6 +4,7 @@ import Vue from 'vue'
 import { union, difference, take, orderBy } from 'lodash'
 
 import stub from '@/stubs/album'
+import { http } from '@/services'
 import { artistStore } from '.'
 
 export const albumStore = {
@@ -25,16 +26,34 @@ export const albumStore = {
 
   setupAlbum (album) {
     const artist = artistStore.byId(album.artist_id)
+    /*var index = artist.albums.findIndex(currentAlbum => currentAlbum.id == album.id)
+    if (index > -1)
+      artist.albums[index] = album
+    else*/
     artist.albums = union(artist.albums, [album])
 
     Vue.set(album, 'artist', artist)
     Vue.set(album, 'info', null)
-    Vue.set(album, 'songs', [])
+    Vue.set(album, 'songs', album.songs || [])
     Vue.set(album, 'playCount', 0)
+    Vue.set(album, 'year', null)
+    Vue.set(album, 'cover', album.cover)
 
     this.cache[album.id] = album
 
     return album
+  },
+
+  updateCover(albums, albumCover) {
+    var album = albums[0].album_id
+    return new Promise((resolve, reject) => {
+      http.put('cover', {
+        data: albumCover,
+        album: album
+      }, ({ data: { album }}) => {
+        resolve(album)
+      }, error => reject(error))
+    })
   },
 
   get all () {
@@ -79,7 +98,7 @@ export const albumStore = {
   },
 
   getMostPlayed (n = 6) {
-    // Only non-unknown albums with actual play count are applicable.
+    // Only non-unknown albums with actually play count are applicable.
     const applicable = this.all.filter(album => album.playCount && album.id !== 1)
     return take(orderBy(applicable, 'playCount', 'desc'), n)
   },

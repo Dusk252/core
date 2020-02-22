@@ -22,6 +22,10 @@ export default {
     entity: {
       type: Object,
       required: true
+    },
+    backgroundImageUrl: {
+      type: Object,
+      required: true
     }
   },
 
@@ -31,17 +35,7 @@ export default {
     },
 
     sortKeys () {
-      return this.forAlbum ? ['disc', 'track'] : ['album_id', 'disc', 'track']
-    },
-
-    backgroundImageUrl () {
-      return this.forAlbum
-        ? this.entity.cover
-          ? this.entity.cover
-          : getDefaultCover()
-        : this.entity.image
-          ? this.entity.image
-          : getDefaultCover()
+      return this.forAlbum ? ['disc', 'track'] : ['album.year', 'album_id', 'disc', 'track']
     },
 
     buttonLabel () {
@@ -109,7 +103,7 @@ export default {
       max-height: 128px;
       background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEzcHgiIGhlaWdodD0iMTMxcHgiIHZpZXdCb3g9IjAgMCAxMTMgMTMxIiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPgogICAgPGcgaWQ9InRyaWFuZ2xlIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgICA8cG9seWdvbiBpZD0iUG9seWdvbiIgZmlsbD0iI0ZGRkZGRiIgcG9pbnRzPSIxMTMuMDIzNzI5IDY1LjI1NDI4MDMgLTEuNTg1Njc4MzFlLTE0IDEzMC41MDg1NjEgLTUuNjg0MzQxODllLTE0IDAiPjwvcG9seWdvbj4KICAgIDwvZz4KPC9zdmc+);
       background-size: 45%;
-      background-position: 58% 50%;
+      background-position: 59% 51%;
       background-repeat: no-repeat;
       border-radius: 50%;
       background-color: #000;

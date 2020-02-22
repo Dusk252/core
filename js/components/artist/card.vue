@@ -2,13 +2,14 @@
   <article
     :title="artist.name"
     @dragstart="dragStart"
+    @contextmenu.prevent="openContextMenu"
     class="item"
     draggable="true"
     tabindex="0"
     v-if="showing"
   >
     <span class="thumbnail-wrapper">
-      <artist-thumbnail :entity="artist" />
+      <artist-thumbnail :entity="artist" :backgroundImageUrl="image" />
     </span>
 
     <footer>
@@ -48,6 +49,7 @@
         </span>
       </p>
     </footer>
+    <context-menu ref="contextMenu" :songs="artist.songs" :type="'artist'"/>
   </article>
 </template>
 
@@ -67,7 +69,8 @@ export default {
   },
 
   components: {
-    ArtistThumbnail: () => import('@/components/ui/album-artist-thumbnail')
+    ArtistThumbnail: () => import('@/components/ui/album-artist-thumbnail'),
+    ContextMenu: () => import('@/components/song/context-menu')
   },
 
   filters: { pluralize },
@@ -100,6 +103,10 @@ export default {
 
     dragStart (event) {
       startDragging(event, this.artist, dragTypes.ARTIST)
+    },
+
+    openContextMenu (event) {
+      this.$nextTick(() => this.$refs.contextMenu.open(event.pageY, event.pageX))
     }
   }
 }

@@ -54,7 +54,7 @@ export const copyText = text => use(document.querySelector('#copyArea'), copyAre
   document.execCommand('copy')
 })
 
-export const getDefaultCover = () => `${sharedStore.state.cdnUrl}/public/img/covers/unknown-album.png`
+export const getDefaultCover = () => `${sharedStore.state.cdnUrl}public/img/covers/unknown-album.png`
 
 /**
  * Create a fancy ghost drag image.

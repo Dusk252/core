@@ -220,6 +220,38 @@ label {
   position: relative;
 }
 
+.half {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.half>.form-row {
+  flex-basis: 50%;
+  margin-top: 0px;
+}
+
+.half>.form-row:nth-child(2n+1) {
+  padding-right: 7px;
+}
+
+.half>.form-row:nth-child(2n) {
+  padding-left: 7px;
+}
+
+.form-row-inner {
+  display: flex;
+  align-items: center;
+}
+
+.form-row-inner>div {
+  width: 100%;
+}
+
+.form-row-inner>input[type=checkbox] {
+  margin: 0 0 0 10px;
+}
+
 .overlay {
   position: fixed;
   top: 0;
@@ -230,6 +262,10 @@ label {
   overflow: auto;
   background-color: rgba(0, 0, 0, .7);
 
+  > div {
+    max-width: 100%;
+  }
+
   @include vertical-center();
 
   form {
@@ -237,6 +273,7 @@ label {
 
     position: relative;
     width: 460px;
+    max-width: 100%;
     background: #fff;
     border-radius: $borderRadius;
     color: #333;

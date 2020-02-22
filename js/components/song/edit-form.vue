@@ -24,6 +24,16 @@
               Details
             </button>
             <button
+              :aria-selected="currentView === 'info'"
+              @click.prevent="currentView = 'info'"
+              aria-controls="editSongPanelInfo"
+              id="editSongTabInfo"
+              role="tab"
+              v-if="type !== 'artist'"
+            >
+              More Info
+            </button>
+            <button
               @click.prevent="currentView = 'lyrics'"
               v-if="editingOnlyOneSong"
               :aria-selected="currentView === 'lyrics'"
@@ -45,36 +55,100 @@
             >
               <div class="form-row" v-if="editingOnlyOneSong">
                 <label>Title</label>
-                <input title="Title" name="title" type="text" v-model="formData.title">
+                <div class="form-row-inner">
+                  <input title="Title" name="title" type="text" v-model="formData.title.value">
+                </div>
               </div>
 
               <div class="form-row">
                 <label>Artist</label>
-                <typeahead
-                  :items="artistState.artists"
-                  :options="artistTypeaheadOptions"
-                  v-model="formData.artistName"/>
+                <div class="form-row-inner">
+                  <input name="artistName" type="text" v-model="formData.artistName.value"
+                    :placeholder="getPlaceholder(allSongsAreFromSameArtist, formData.artistName.edit)" @keydown="contentModified">
+                  <input type="checkbox" v-model="formData.artistName.edit" v-if="!editingOnlyOneSong" />
+                </div>
               </div>
 
-              <div class="form-row">
+              <div class="form-row" v-if="type !== 'artist'"> 
                 <label>Album</label>
-                <typeahead
-                  :items="albumState.albums"
-                  :options="albumTypeaheadOptions"
-                  v-model="formData.albumName"/>
+                <div class="form-row-inner">
+                    <input name="albumName" type="text" v-model="formData.albumName.value"
+                      :placeholder="getPlaceholder(allSongsAreInSameAlbum, formData.albumName.edit)" @keydown="contentModified">
+                    <input type="checkbox" v-model="formData.albumName.edit" v-if="!editingOnlyOneSong" />
+                </div>
               </div>
 
-              <div class="form-row">
+              <div class="form-row" v-if="type === 'album'">
+                <label>Album Cover</label>
+                <div class="form-row-inner">
+                    <input name="albumCover" type="text" v-model="formData.albumCover.value"
+                      placeholder="Leave empty for no changes" @keydown="contentModified">
+                </div>
+              </div>
+
+              <div class="form-row" v-if="type !== 'artist'">
                 <label class="small">
                   <input type="checkbox" @change="changeCompilationState" ref="compilationStateChk" />
                   Album is a compilation of songs by various artists
                 </label>
               </div>
 
-              <div class="form-row" v-show="editingOnlyOneSong">
-                <label>Track</label>
-                <input name="track" type="text" pattern="\d*" v-model="formData.track"
-                title="Empty or a number">
+              <div :class="{'half' : editingOnlyOneSong}" v-if="type !== 'artist'">
+                <div class="form-row">
+                  <label>Disc</label>
+                  <div class="form-row-inner">
+                    <input name="disc" type="text" pattern="\d*" v-model="formData.disc.value"
+                    title="Empty or a number" :placeholder="getPlaceholder(allSongsAreInSameDisc, formData.disc.edit)" @keydown="contentModified">
+                    <input type="checkbox" v-model="formData.disc.edit" v-if="!editingOnlyOneSong" />
+                  </div>
+                </div>
+
+                <div class="form-row" v-show="editingOnlyOneSong">
+                  <label>Track</label>
+                  <div class="form-row-inner">
+                    <input name="track" type="text" pattern="\d*" v-model="formData.track.value"
+                    title="Empty or a number">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              aria-labelledby="editSongTabInfo"
+              id="editSongPanelInfo"
+              role="tabpanel"
+              tabindex="0"
+              v-show="currentView === 'info'"
+              v-if="type !== 'artist'"
+            >
+              <div class="form-row">
+                <label>Year</label>
+                <div class="form-row-inner">
+                  <input name="year" type="text" pattern="\d*" v-model="formData.year.value"
+                  title="Empty or a number" :placeholder="getPlaceholder(allSongsHaveSameYear, formData.year.edit)" @keydown="contentModified">
+                  <input type="checkbox" v-model="formData.year.edit" v-if="!editingOnlyOneSong" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label>Composer</label>
+                <div class="form-row-inner">
+                  <input name="composer" type="text" v-model="formData.composer.value" :placeholder="getPlaceholder(allSongsHaveSameComposer, formData.composer.edit)" @keydown="contentModified">
+                  <input type="checkbox" v-model="formData.composer.edit" v-if="!editingOnlyOneSong" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label>Genre</label>
+                <div class="form-row-inner">
+                  <input name="genre" type="text" v-model="formData.genre.value" :placeholder="getPlaceholder(allSongsHaveSameGenre, formData.genre.edit)" @keydown="contentModified">
+                  <input type="checkbox" v-model="formData.genre.edit" v-if="!editingOnlyOneSong" />
+                </div>
+              </div>
+
+              <div class="form-row" v-if="editingOnlyOneSong">
+                <label>Comments</label>
+                <textarea class="comments" title="comments" name="comments" v-model="formData.comments.value"></textarea>
               </div>
             </div>
 
@@ -87,7 +161,7 @@
               v-show="currentView === 'lyrics'"
             >
               <div class="form-row">
-                <textarea title="Lyrics" name="lyrics" v-model="formData.lyrics"></textarea>
+                <textarea title="Lyrics" name="lyrics" v-model="formData.lyrics.value"></textarea>
               </div>
             </div>
           </div>
@@ -105,10 +179,11 @@
 <script>
 import { union } from 'lodash'
 
-import { br2nl } from '@/utils'
+import { br2nl, event } from '@/utils'
 import { songInfo } from '@/services/info'
 import { artistStore, albumStore, songStore } from '@/stores'
 import { getDefaultCover } from '@/utils'
+import { isObject } from 'util';
 
 const COMPILATION_STATES = {
   NONE: 0, // No songs belong to a compilation album
@@ -119,14 +194,17 @@ const COMPILATION_STATES = {
 export default {
   components: {
     Btn: () => import('@/components/ui/btn'),
-    SoundBar: () => import('@/components/ui/sound-bar'),
-    Typeahead: () => import('@/components/ui/typeahead')
+    SoundBar: () => import('@/components/ui/sound-bar')
   },
 
   props: {
     songs: {
       required: true,
       type: [Array, Object]
+    },
+    type: {
+      type: String,
+      required: true
     }
   },
 
@@ -135,20 +213,6 @@ export default {
     currentView: '',
     loading: true,
 
-    artistState: artistStore.state,
-    artistTypeaheadOptions: {
-      displayKey: 'name',
-      filterKey: 'name',
-      name: 'artist'
-    },
-
-    albumState: albumStore.state,
-    albumTypeaheadOptions: {
-      displayKey: 'name',
-      filterKey: 'name',
-      name: 'album'
-    },
-
     /**
      * In order not to mess up the original songs, we manually assign and manipulate
      * their attributes.
@@ -156,18 +220,24 @@ export default {
      * @type {Object}
      */
     formData: {
-      title: '',
-      albumName: '',
-      artistName: '',
-      lyrics: '',
-      track: '',
+      title: {edit: false, value:''},
+      albumName: {edit: false, value:''},
+      artistName: {edit: false, value:''},
+      lyrics: {edit: false, value:''},
+      track: {edit: false, value:''},
+      disc: {edit: false, value:''},
+      year: {edit: false, value:''},
+      composer: {edit: false, value:''},
+      genre: {edit: false, value:''},
+      comments: {edit: false, value:''},
+      albumCover: {edit: false, value:''},
       compilationState: null
     }
   }),
 
   computed: {
     editingOnlyOneSong () {
-      return this.mutatedSongs.length === 1
+      return this.type === 'song' && this.mutatedSongs.length === 1
     },
 
     allSongsAreFromSameArtist () {
@@ -176,6 +246,22 @@ export default {
 
     allSongsAreInSameAlbum () {
       return this.mutatedSongs.every(song => song.album.id === this.mutatedSongs[0].album.id)
+    },
+
+    allSongsHaveSameYear () {
+      return this.mutatedSongs.every(song => song.year === this.mutatedSongs[0].year)
+    },
+
+    allSongsHaveSameGenre () {
+      return this.mutatedSongs.every(song => song.genre === this.mutatedSongs[0].genre)
+    },
+
+    allSongsHaveSameComposer () {
+      return this.mutatedSongs.every(song => song.composer === this.mutatedSongs[0].composer)
+    },
+
+    allSongsAreInSameDisc () {
+      return this.mutatedSongs.every(song => song.disc === this.mutatedSongs[0].disc)
     },
 
     coverUrl () {
@@ -198,18 +284,18 @@ export default {
     },
 
     displayedTitle () {
-      return this.editingOnlyOneSong ? this.formData.title : `${this.mutatedSongs.length} songs selected`
+      return this.editingOnlyOneSong ? this.formData.title.value : `${this.mutatedSongs.length} songs selected`
     },
 
     displayedArtistName () {
-      return this.allSongsAreFromSameArtist || this.formData.artistName
-        ? this.formData.artistName
+      return this.allSongsAreFromSameArtist || this.formData.artistName.value
+        ? this.formData.artistName.value
         : 'Mixed Artists'
     },
 
     displayedAlbumName () {
-      return this.allSongsAreInSameAlbum || this.formData.albumName
-        ? this.formData.albumName
+      return this.allSongsAreInSameAlbum || this.formData.albumName.value
+        ? this.formData.albumName.value
         : 'Mixed Albums'
     }
   },
@@ -220,9 +306,14 @@ export default {
       this.currentView = 'details'
 
       if (this.editingOnlyOneSong) {
-        this.formData.title = this.mutatedSongs[0].title
-        this.formData.albumName = this.mutatedSongs[0].album.name
-        this.formData.artistName = this.mutatedSongs[0].artist.name
+        this.formData.title.value = this.mutatedSongs[0].title
+        this.formData.albumName.value = this.mutatedSongs[0].album.name
+        this.formData.artistName.value = this.mutatedSongs[0].artist.name
+
+        for (let key in this.formData) {
+          if (this.formData.hasOwnProperty(key) && isObject(this.formData[key]) && this.formData[key].hasOwnProperty('edit'))
+            this.formData[key]['edit'] = true
+        }
 
         // If we're editing only one song and the song's info (including lyrics)
         // hasn't been loaded, load it now.
@@ -231,18 +322,32 @@ export default {
 
           await songInfo.fetch(this.mutatedSongs[0])
           this.loading = false
-          this.formData.lyrics = br2nl(this.mutatedSongs[0].lyrics)
-          this.formData.track = this.mutatedSongs[0].track || ''
+          this.formData.lyrics.value = br2nl(this.mutatedSongs[0].lyrics)
+          this.formData.disc.value = this.mutatedSongs[0].disc || ''
+          this.formData.track.value = this.mutatedSongs[0].track || ''
+          this.formData.year.value = this.mutatedSongs[0].year || ''
+          this.formData.genre.value = this.mutatedSongs[0].genre
+          this.formData.composer.value = this.mutatedSongs[0].composer
+          this.formData.comments.value = this.mutatedSongs[0].comments
           this.initCompilationStateCheckbox()
         } else {
           this.loading = false
-          this.formData.lyrics = br2nl(this.mutatedSongs[0].lyrics)
-          this.formData.track = this.mutatedSongs[0].track || ''
+          this.formData.lyrics.value = br2nl(this.mutatedSongs[0].lyrics)
+          this.formData.disc.value = this.mutatedSongs[0].disc || ''
+          this.formData.track.value = this.mutatedSongs[0].track || ''
+          this.formData.year.value = this.mutatedSongs[0].year || ''
+          this.formData.genre.value = this.mutatedSongs[0].genre
+          this.formData.composer.value = this.mutatedSongs[0].composer
+          this.formData.comments.value = this.mutatedSongs[0].comments
           this.initCompilationStateCheckbox()
         }
       } else {
-        this.formData.albumName = this.allSongsAreInSameAlbum ? this.mutatedSongs[0].album.name : ''
-        this.formData.artistName = this.allSongsAreFromSameArtist ? this.mutatedSongs[0].artist.name : ''
+        this.formData.albumName.value = this.allSongsAreInSameAlbum ? this.mutatedSongs[0].album.name : ''
+        this.formData.artistName.value = this.allSongsAreFromSameArtist ? this.mutatedSongs[0].artist.name : ''
+        this.formData.disc.value = this.allSongsAreInSameDisc ? this.mutatedSongs[0].disc || '' : ''
+        this.formData.year.value = this.allSongsHaveSameYear ? this.mutatedSongs[0].year || '' : ''
+        this.formData.genre.value = this.allSongsHaveSameGenre ? this.mutatedSongs[0].genre : ''
+        this.formData.composer.value = this.allSongsHaveSameComposer ? this.mutatedSongs[0].composer : ''
         this.loading = false
         this.initCompilationStateCheckbox()
       }
@@ -281,6 +386,19 @@ export default {
       this.formData.compilationState = e.target.checked ? COMPILATION_STATES.ALL : COMPILATION_STATES.NONE
     },
 
+    contentModified ($event) {
+      let name = $event.target.getAttribute('name')
+      if (this.formData.hasOwnProperty(name))
+          this.formData[name]['edit'] = true
+    },
+
+    getPlaceholder (p1, p2) {
+      if (!p1 && !p2)
+        return 'Mixed'
+      else
+        return ''
+    },
+
     close () {
       this.$emit('close')
     },
@@ -290,6 +408,7 @@ export default {
 
       try {
         await songStore.update(this.mutatedSongs, this.formData)
+        event.emit(event.$names.KOEL_READY)
         this.close()
       } finally {
         this.loading = false
@@ -318,6 +437,14 @@ form {
         opacity: .5;
       }
     }
+  }
+
+  textarea.comments {
+    min-height: 100px;
+  }
+
+  textarea.lyrics {
+    min-height: 250px;
   }
 }
 </style>

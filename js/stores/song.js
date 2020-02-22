@@ -174,11 +174,31 @@ export const songStore = {
         data,
         songs: songs.map(song => song.id)
       }, ({ data: { songs, artists, albums }}) => {
+        let syncFailure = 0
         // Add the artist and album into stores if they're new
-        artists.forEach(artist => !artistStore.byId(artist.id) && artistStore.add(artist))
-        albums.forEach(album => !albumStore.byId(album.id) && albumStore.add(album))
+        artists.forEach(artist => {
+          if (!artistStore.byId(artist.id))
+            artistStore.add(Array.of(artist))
+            var currentArtist = artistStore.byId(artist.id)
+            artistStore.setupArtist(currentArtist)
+            var index = artistStore.all.findIndex(currentArtist => currentArtist.id == artist.id)
+            artistStore.all[index] = currentArtist
+        })
+        albums.forEach(album => {
+          if (!albumStore.byId(album.id))
+            albumStore.add(Array.of(album))
+          else {
+            var currentAlbum = albumStore.byId(album.id)
+            currentAlbum.cover = album.cover
+            albumStore.setupAlbum(currentAlbum)
+            var index = albumStore.all.findIndex(currentAlbum => currentAlbum.id == album.id)
+            albumStore.all[index] = currentAlbum
+          }
+        })
 
         songs.forEach(song => {
+          if(song.syncSuccess == false)
+            syncFailure++;
           let originalSong = this.byId(song.id)
 
           if (originalSong.album_id !== song.album_id) {
@@ -200,6 +220,8 @@ export const songStore = {
         albumStore.compact()
 
         alerts.success(`Updated ${pluralize(songs.length, 'song')}.`)
+        if(syncFailure)
+          alerts.log(`Failed to sync ${pluralize(syncFailure, 'song')}.`)
         resolve(songs)
       }, error => reject(error))
     })

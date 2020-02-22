@@ -2,13 +2,14 @@
   <article
     :title="`${album.name} by ${album.artist.name}`"
     @dragstart="dragStart"
+    @contextmenu.prevent="openContextMenu"
     class="item"
     draggable="true"
     tabindex="0"
     v-if="album.songs.length"
   >
     <span class="thumbnail-wrapper">
-      <album-thumbnail :entity="album" />
+      <album-thumbnail :entity="album" :backgroundImageUrl="album.cover" />
     </span>
 
     <footer>
@@ -20,6 +21,7 @@
       </div>
       <p class="meta">
         <span class="left">
+          {{ album.year ? album.year + ' •' : '' }}
           {{ album.songs.length | pluralize('song') }}
           •
           {{ fmtLength }}
@@ -49,6 +51,7 @@
         </span>
       </p>
     </footer>
+    <context-menu ref="contextMenu" :songs="album.songs" :type="'album'"/>
   </article>
 </template>
 
@@ -61,7 +64,8 @@ import albumAttributes from '@/mixins/album-attributes'
 
 export default {
   components: {
-    AlbumThumbnail: () => import('@/components/ui/album-artist-thumbnail')
+    AlbumThumbnail: () => import('@/components/ui/album-artist-thumbnail'),
+    ContextMenu: () => import('@/components/song/context-menu')
   },
 
   props: {
@@ -96,6 +100,10 @@ export default {
 
     dragStart (event) {
       startDragging(event, this.album, dragTypes.ALBUM)
+    },
+
+    openContextMenu (event) {
+      this.$nextTick(() => this.$refs.contextMenu.open(event.pageY, event.pageX))
     }
   }
 }

@@ -3,7 +3,7 @@
     <h1 class="heading">
       <span class="overview">
         <span class="thumbnail-wrapper">
-          <album-thumbnail :entity="album" />
+          <album-thumbnail :entity="album" :backgroundImageUrl="album.cover" />
         </span>
 
         {{ album.name }}
@@ -41,7 +41,7 @@
       />
     </h1>
 
-    <song-list :items="album.songs" type="album" ref="songList"/>
+    <song-list :items="album.songs" type="album" :defaultSortKeys="['song.disc', 'song.track']" ref="songList"/>
 
     <section class="info-wrapper" v-if="sharedState.useLastfm && meta.showing">
       <a href class="close" @click.prevent="meta.showing = false"><i class="fa fa-times"></i></a>
@@ -56,7 +56,7 @@
 <script>
 import { pluralize } from '@/utils'
 import { artistStore, sharedStore } from '@/stores'
-import { download, albumInfo as albumInfoService } from '@/services'
+import { playback, download, albumInfo as albumInfoService } from '@/services'
 import router from '@/router'
 import hasSongList from '@/mixins/has-song-list'
 import albumAttributes from '@/mixins/album-attributes'
@@ -111,7 +111,12 @@ export default {
   },
 
   methods: {
-    getSongs (shuffled) {
+
+    playAll (shuffled) {
+      playback.playAllInAlbum(this.album, shuffled)
+    },
+
+    getSongs () {
       return this.album.songs
     },
 

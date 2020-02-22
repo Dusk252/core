@@ -54,10 +54,11 @@ export default {
         this.showingModalName = 'edit-user-form'
       },
 
-      [event.$names.MODAL_SHOW_EDIT_SONG_FORM]: songs => {
+      [event.$names.MODAL_SHOW_EDIT_SONG_FORM]: (songs, type) => {
         this.boundData.songs = songs
+        this.boundData.type = type
         this.showingModalName = 'edit-song-form'
-      },
+      }
 
       // [event.$names.MODAL_SHOW_ABOUT_DIALOG]: () => {
       //   this.showingModalName = 'about-dialog'

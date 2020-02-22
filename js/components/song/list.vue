@@ -49,7 +49,7 @@
       key-field="song.id"
     />
 
-    <context-menu ref="contextMenu" :songs="selectedSongs"/>
+    <context-menu ref="contextMenu" :songs="selectedSongs" :type="'song'"/>
   </div>
 </template>
 
