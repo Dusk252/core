@@ -188,7 +188,7 @@ export default {
     }
   }
 
-  .song-item-home .fa {
+  .song-item-home .fa-play {
     position: relative;
     top: 1px;
     left: 1px;
