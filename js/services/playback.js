@@ -68,6 +68,14 @@ export const playback = {
 
     player.addEventListener('timeupdate', e => {
       const song = queueStore.current
+      if (playtimestamp === 0)
+        playtimestamp = e.timeStamp
+      else {
+        if (updated === false && (e.timeStamp - playtimestamp) / 1000 > this.player.media.duration / 1.5) {
+          this.registerPlayInteraction(song)
+          updated = true
+        }
+      }
       if (
         this.player.media.duration &&
         this.player.media.currentTime + PRELOAD_BUFFER > this.player.media.duration
@@ -84,14 +92,6 @@ export const playback = {
         audio.setAttribute('preload', 'auto')
         audio.load()
         nextSong.preloaded = true
-      }
-      if (playtimestamp === 0)
-        playtimestamp = e.timeStamp
-      else {
-        if (updated === false && (e.timeStamp - playtimestamp) / 1000 > this.player.media.duration / 1.5) {
-          this.registerPlayInteraction(song)
-          updated = true
-        }
       }
     })
 
